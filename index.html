@@ -28,7 +28,7 @@
             text-transform: uppercase;
         }
 
-        /* ปุ่มอัตโนมัติ (ซ่อนไว้ก่อนจนกว่าจะถึงบรรทัดที่ 3) */
+        /* ปุ่ม RevealAll (ซ่อนไว้จนกว่าจะถึงบรรทัดที่ 3) */
         #auto-btn {
             background: linear-gradient(45deg, #38bdf8, #22d3ee);
             color: #0f172a;
@@ -41,15 +41,14 @@
             border-radius: 6px;
             cursor: pointer;
             transition: all 0.3s ease;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            display: none; /* ซ่อนไว้เริ่มต้น */
+            display: none;
             opacity: 0;
             transform: translateY(-10px);
             transition: opacity 0.5s ease, transform 0.5s ease;
         }
 
-        /* คลาสสำหรับแสดงปุ่มแบบเฟดอินสมูทๆ */
         #auto-btn.show {
             display: inline-block;
             opacity: 1;
@@ -65,20 +64,61 @@
             transform: translateY(1px);
         }
 
+        /* ส่วนแสดงผลหลัก: จัดวางกล่องข้อความกับรูปภาพให้อยู่ด้วยกัน */
+        .main-container {
+            display: flex;
+            gap: 30px;
+            max-width: 950px;
+            width: 100%;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
         /* กล่องแสดงข้อความ */
         #portfolio-content {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             line-height: 1.8;
-            max-width: 750px;
+            flex: 1;
+            min-width: 300px;
             text-align: left;
             background: #1e293b;
-            padding: 40px;
+            padding: 30px;
             border-radius: 12px;
             border: 1px solid #334155;
             box-shadow: 0 10px 25px rgba(0,0,0,0.5);
             min-height: 250px;
-            width: 100%;
             box-sizing: border-box;
+        }
+
+        /* สไตล์กล่องรูปภาพที่จะโผล่มาตอนพิมพ์ถึงบรรทัดที่กำหนด */
+        #image-container {
+            width: 220px;
+            text-align: center;
+            opacity: 0;
+            transform: scale(0.9);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+            display: none; /* ซ่อนไว้เริ่มต้น */
+        }
+
+        /* เมื่อแสดงรูปภาพ */
+        #image-container.show {
+            display: block;
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        #image-container img {
+            width: 100%;
+            border-radius: 10px;
+            border: 2px solid #38bdf8;
+            box-shadow: 0 8px 20px rgba(56, 189, 248, 0.2);
+        }
+
+        .img-caption {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-top: 8px;
         }
 
         .char {
@@ -110,17 +150,26 @@
 
     <div class="instruction">[ Type to continue ]</div>
     
-    <!-- ปุ่มกดเปิดอัตโนมัติ (ยังไม่แสดงตอนเริ่มต้น) -->
-    <button id="auto-btn">⚡ Reveal All</button>
+    <!-- ปุ่ม RevealAll -->
+    <button id="auto-btn">RevealAll</button>
 
-    <!-- กล่องแสดงข้อความ -->
-    <div id="portfolio-content">
-        <span id="text-container"></span>
-        <span id="cursor" class="cursor">&nbsp;</span>
+    <!-- พื้นที่แสดงข้อความและรูปภาพประกอบ -->
+    <div class="main-container">
+        <div id="portfolio-content">
+            <span id="text-container"></span>
+            <span id="cursor" class="cursor">&nbsp;</span>
+        </div>
+
+        <!-- รูปภาพที่จะโผล่มาเมื่อพิมพ์ถึงบรรทัดที่กำหนด -->
+        <div id="image-container">
+            <!-- เปลี่ยน src เป็นลิงก์รูปภาพของคุณได้เลย -->
+            <img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=400&q=80" alt="Game Dev Setup">
+            <div class="img-caption">⚡ Game Designer Workspace</div>
+        </div>
     </div>
 
     <script>
-        // แก้ไขข้อความของคุณตรงนี้ได้เลย
+        // ข้อความใน Portfolio
         const portfolioText = `ยินดีต้อนรับสู่ Portfolio ของผม!
 
 ผมคือนักออกแบบเกมที่หลงใหลในการสร้างประสบการณ์ที่น่าจดจำ...
@@ -138,13 +187,14 @@
         const textContainer = document.getElementById('text-container');
         const cursor = document.getElementById('cursor');
         const autoBtn = document.getElementById('auto-btn');
+        const imageContainer = document.getElementById('image-container');
         
         let currentIndex = 0;
         let isFinished = false;
         let autoInterval = null;
-        let lineBreakCount = 0; // ตัวนับจำนวนบรรทัดที่แสดงแล้ว
+        let lineBreakCount = 0; 
 
-        // แปลงข้อความทั้งหมดให้เป็นตัวอักษรย่อยๆ ซ่อนไว้
+        // แปลงข้อความทั้งหมดเป็นสแปนย่อยๆ
         portfolioText.split('').forEach(char => {
             const span = document.createElement('span');
             span.textContent = char;
@@ -157,7 +207,7 @@
 
         const charElements = document.querySelectorAll('.char');
 
-        // ฟังก์ชันเปิดข้อความทีละหลายตัว
+        // ฟังก์ชันเปิดข้อความทีละตัว
         function revealSteps(count = 3) {
             if (isFinished) return;
             
@@ -166,12 +216,18 @@
                     const currentSpan = charElements[currentIndex];
                     currentSpan.classList.add('revealed');
                     
-                    // เช็กว่าตัวอักษรตัวนี้คือการขึ้นบรรทัดใหม่หรือไม่
+                    // เช็กการขึ้นบรรทัดใหม่
                     if (currentSpan.textContent === '\n' || currentSpan.innerHTML === '<br>') {
                         lineBreakCount++;
-                        // ถ้าพิมพ์ครบ 3 บรรทัดแล้ว ให้แสดงปุ่มอัตโนมัติออกมา
+                        
+                        // เมื่อพิมพ์ไปถึงบรรทัดที่ 3 ให้แสดงปุ่ม RevealAll
                         if (lineBreakCount >= 3) {
                             autoBtn.classList.add('show');
+                        }
+
+                        // *ลูกเล่นใหม่*: เมื่อพิมพ์ไปถึง "บรรทัดที่ 5" (หรือเปลี่ยนเลขตามชอบ) ให้รูปภาพโผล่ขึ้นมา!
+                        if (lineBreakCount >= 5) {
+                            imageContainer.classList.add('show');
                         }
                     }
 
@@ -179,13 +235,14 @@
                 } else {
                     isFinished = true;
                     cursor.style.display = 'none';
-                    autoBtn.style.display = 'none'; // ซ่อนปุ่มเมื่อพิมพ์จบแล้ว
+                    autoBtn.style.display = 'none';
+                    imageContainer.classList.add('show'); // เผื่อพิมพ์จนจบแล้วรูปยังไม่โผล่
                     break;
                 }
             }
         }
 
-        // ระบบกดปุ่มคีย์บอร์ด หรือคลิกเพื่อพิมพ์เอง
+        // คีย์บอร์ดและเมาส์คลิกเพื่อพิมพ์
         window.addEventListener('keydown', (e) => {
             if (['F12', 'Control', 'Alt', 'Shift'].includes(e.key)) return;
             if (autoInterval) return; 
@@ -198,11 +255,11 @@
             revealSteps(3);
         });
 
-        // ระบบกดปุ่ม "ขี้เกียจพิมพ์" (พิมพ์อัตโนมัติจนจบ)
+        // ปุ่ม RevealAll (เปิดอัตโนมัติรัวๆ จนจบ)
         autoBtn.addEventListener('click', () => {
             if (isFinished || autoInterval) return;
             
-            autoBtn.textContent = "กำลังเปิดข้อความอัตโนมัติ...";
+            autoBtn.textContent = "Revealing...";
             autoBtn.style.opacity = "0.7";
 
             autoInterval = setInterval(() => {
@@ -211,6 +268,7 @@
                 } else {
                     clearInterval(autoInterval);
                     autoBtn.style.display = 'none';
+                    imageContainer.classList.add('show');
                 }
             }, 30);
         });
