@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Interactive Portfolio</title>
+    <style>
+        body {
+            background-color: #0b0f19;
+            color: #e2e8f0;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            text-align: center;
+            flex-direction: column;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .instruction {
+            color: #64748b;
+            margin-bottom: 40px;
+            font-size: 1rem;
+            letter-spacing: 2px;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.4; }
+            50% { opacity: 1; }
+            100% { opacity: 0.4; }
+        }
+
+        #hidden-portfolio {
+            font-size: 1.5rem;
+            line-height: 1.8;
+            max-width: 800px;
+            text-align: left;
+            background: #1e293b;
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid #334155;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+
+        .char {
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .char.revealed {
+            opacity: 1;
+            color: #38bdf8;
+            text-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+        }
+
+        .highlight {
+            color: #34d399 !important;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="instruction">[ กดปุ่มอะไรก็ได้บนคีย์บอร์ด (หรือแต้มหน้าจอ) เพื่อเปิดเผยข้อมูล ]</div>
+    
+    <div id="hidden-portfolio"></div>
+
+    <script>
+        // เปลี่ยนข้อความตรงนี้เป็นข้อมูลพอร์ตโฟลิโอของคุณเองได้เลยครับ
+        const portfolioText = `สวัสดีครับ! ยินดีต้อนรับสู่พอร์ตโฟลิโอของผม...
+ผมเป็น Game Designer ที่หลงใหลในการสร้างสรรค์กลไกและระบบเกมที่สนุกสนาน
+
+> ทักษะและความสามารถ:
+- ออกแบบ Game Mechanics & Core Loop
+- เขียน Game Design Document (GDD)
+- ใช้เครื่องมือ Godot, Blender, และ Figma
+
+> ผลงานเด่น:
+สามารถเลื่อนดูโปรเจกต์ทั้งหมดของผมได้ที่ลิงก์ด้านล่างนี้เลยครับ!`;
+        
+        const container = document.getElementById('hidden-portfolio');
+        let currentIndex = 0;
+
+        // แปลงข้อความให้เป็นตัวอักษรย่อยๆ
+        portfolioText.split('').forEach(char => {
+            const span = document.createElement('span');
+            span.textContent = char;
+            if (char === '\n') {
+                span.innerHTML = '<br>';
+            }
+            span.className = 'char';
+            container.appendChild(span);
+        });
+
+        const charElements = document.querySelectorAll('.char');
+
+        // ฟังก์ชันเปิดข้อความทีละหลายตัวอักษรต่อการกด 1 ครั้ง
+        function revealChars() {
+            if (currentIndex < charElements.length) {
+                for (let i = 0; i < 3; i++) { // กด 1 ครั้ง โผล่มา 3 ตัวอักษร
+                    if (currentIndex < charElements.length) {
+                        charElements[currentIndex].classList.add('revealed');
+                        currentIndex++;
+                    }
+                }
+            }
+        }
+
+        // รองรับทั้งการกดคีย์บอร์ดบนคอม และการแตะหน้าจอบนมือถือ
+        window.addEventListener('keydown', (e) => {
+            if (['F12', 'Control', 'Alt', 'Shift'].includes(e.key)) return;
+            revealChars();
+        });
+
+        window.addEventListener('click', () => {
+            revealChars();
+        });
+    </script>
+
+</body>
+</html>
