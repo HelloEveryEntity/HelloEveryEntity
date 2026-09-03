@@ -20,35 +20,37 @@
             box-sizing: border-box;
         }
 
-        /* สไตล์ปุ่มกด */
-        #reveal-btn {
+        .instruction {
+            color: #64748b;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+            letter-spacing: 1px;
+        }
+
+        /* ปุ่มกดอัตโนมัติ (เผื่อขี้เกียจพิมพ์) */
+        #auto-btn {
             background: linear-gradient(45deg, #38bdf8, #22d3ee);
             color: #0f172a;
             border: none;
-            padding: 14px 28px;
-            font-size: 1.1rem;
+            padding: 10px 20px;
+            font-size: 0.9rem;
             font-weight: bold;
             text-transform: uppercase;
-            letter-spacing: 1.5px;
-            border-radius: 8px;
+            letter-spacing: 1px;
+            border-radius: 6px;
             cursor: pointer;
             transition: all 0.3s ease;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
 
-        #reveal-btn:hover {
-            transform: translateY(-3px);
+        #auto-btn:hover {
+            transform: translateY(-2px);
             box-shadow: 0 6px 12px rgba(56, 189, 248, 0.3);
         }
 
-        #reveal-btn:active {
+        #auto-btn:active {
             transform: translateY(1px);
-        }
-
-        /* ซ่อนปุ่มเมื่อกำลังพิมพ์อยู่ */
-        #reveal-btn.hidden {
-            display: none;
         }
 
         /* กล่องแสดงข้อความ */
@@ -78,7 +80,6 @@
             text-shadow: 0 0 5px rgba(52, 211, 153, 0.4);
         }
 
-        /* เคอร์เซอร์กระพริบระหว่างพิมพ์ */
         .cursor {
             display: inline-block;
             width: 10px;
@@ -95,17 +96,19 @@
 </head>
 <body>
 
-    <!-- ปุ่มเดียวสำหรับกดเริ่มแสดงผล -->
-    <button id="reveal-btn">▶ กดเพื่อแสดงเนื้อหา</button>
+    <div class="instruction">[ กดปุ่มอะไรก็ได้บนคีย์บอร์ด หรือคลิกเพื่อเปิดข้อความทีละตัว ]</div>
     
+    <!-- ปุ่มกดเปิดอัตโนมัติสำหรับคนขี้เกียจพิมพ์ -->
+    <button id="auto-btn">⚡ ขี้เกียจพิมพ์? คลิกเพื่อเปิดอัตโนมัติ</button>
+
     <!-- กล่องแสดงข้อความ -->
     <div id="portfolio-content">
         <span id="text-container"></span>
-        <span id="cursor" class="cursor" style="display: none;">&nbsp;</span>
+        <span id="cursor" class="cursor">&nbsp;</span>
     </div>
 
     <script>
-        // แก้ไขข้อความพอร์ตโฟลิโอของคุณเองตรงนี้ได้เลยครับ
+        // แก้ไขข้อความของคุณตรงนี้ได้เลย
         const portfolioText = `ยินดีต้อนรับสู่ Portfolio ของผม!
 
 ผมคือนักออกแบบเกมที่หลงใหลในการสร้างประสบการณ์ที่น่าจดจำ...
@@ -122,10 +125,13 @@
         
         const textContainer = document.getElementById('text-container');
         const cursor = document.getElementById('cursor');
-        const revealBtn = document.getElementById('reveal-btn');
+        const autoBtn = document.getElementById('auto-btn');
+        
         let currentIndex = 0;
+        let isFinished = false;
+        let autoInterval = null;
 
-        // แปลงข้อความทั้งหมดให้เป็น span ตัวอักษรซ่อนไว้ล่วงหน้า
+        // แปลงข้อความทั้งหมดให้เป็นตัวอักษรย่อยๆ ซ่อนไว้
         portfolioText.split('').forEach(char => {
             const span = document.createElement('span');
             span.textContent = char;
@@ -138,22 +144,53 @@
 
         const charElements = document.querySelectorAll('.char');
 
-        // เมื่อกดปุ่ม ให้เริ่มกระบวนการพิมพ์อัตโนมัติ
-        revealBtn.addEventListener('click', () => {
-            revealBtn.classList.add('hidden'); // ซ่อนปุ่ม
-            cursor.style.display = 'inline-block'; // แสดงเคอร์เซอร์กระพริบ
-
-            // ตั้งเวลาให้ตัวอักษรค่อยๆ ปรากฏขึ้นมาทีละตัว
-            const typingInterval = setInterval(() => {
+        // ฟังก์ชันเปิดข้อความทีละหลายตัว (สำหรับการพิมพ์ทีละแอด)
+        function revealSteps(count = 3) {
+            if (isFinished) return;
+            
+            for (let i = 0; i < count; i++) {
                 if (currentIndex < charElements.length) {
                     charElements[currentIndex].classList.add('revealed');
                     currentIndex++;
                 } else {
-                    // เมื่อพิมพ์ครบทุกตัวแล้ว ให้หยุดและซ่อนเคอร์เซอร์
-                    clearInterval(typingInterval);
+                    isFinished = true;
                     cursor.style.display = 'none';
+                    autoBtn.style.display = 'none'; // ซ่อนปุ่มเมื่อพิมพ์จบแล้ว
+                    break;
                 }
-            }, 45); // ปรับความเร็วตรงนี้ได้ (เลขน้อยลงจะพิมพ์เร็วขึ้น, มากขึ้นจะพิมพ์ช้าลง)
+            }
+        }
+
+        // ระบบกดปุ่มคีย์บอร์ด หรือคลิกเพื่อพิมพ์เองทีละนิด
+        window.addEventListener('keydown', (e) => {
+            if (['F12', 'Control', 'Alt', 'Shift'].includes(e.key)) return;
+            // ถ้ากดปุ่มอัตโนมัติค้างไว้ ไม่ต้องรับคีย์บอร์ดซ้ำ
+            if (autoInterval) return; 
+            revealSteps(3); // กด 1 ครั้ง โผล่มา 3 ตัวอักษร
+        });
+
+        window.addEventListener('click', (e) => {
+            if (e.target.id === 'auto-btn') return; // ยกเว้นถ้าคลิกที่ปุ่มออโต้
+            if (autoInterval) return;
+            revealSteps(3);
+        });
+
+        // ระบบกดปุ่ม "ขี้เกียจพิมพ์" (พิมพ์อัตโนมัติรัวๆ จนจบ)
+        autoBtn.addEventListener('click', () => {
+            if (isFinished || autoInterval) return;
+            
+            autoBtn.textContent = "กำลังเปิดข้อความอัตโนมัติ...";
+            autoBtn.style.opacity = "0.7";
+
+            // สั่งรันออโต้รัวๆ จนกว่าจะหมด
+            autoInterval = setInterval(() => {
+                if (currentIndex < charElements.length) {
+                    revealSteps(2); // ความเร็วอัตโนมัติ
+                } else {
+                    clearInterval(autoInterval);
+                    autoBtn.style.display = 'none';
+                }
+            }, 30);
         });
     </script>
 
