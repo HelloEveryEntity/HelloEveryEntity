@@ -20,46 +20,34 @@
             box-sizing: border-box;
         }
 
-        /* กล่องรวมปุ่มเลือกทางเลือก */
-        .button-container {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 40px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .btn {
+        /* สไตล์ปุ่มกด */
+        #reveal-btn {
             background: linear-gradient(45deg, #38bdf8, #22d3ee);
             color: #0f172a;
             border: none;
-            padding: 12px 24px;
-            font-size: 1rem;
+            padding: 14px 28px;
+            font-size: 1.1rem;
             font-weight: bold;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.3s ease;
+            margin-bottom: 40px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
 
-        .btn:hover {
+        #reveal-btn:hover {
             transform: translateY(-3px);
             box-shadow: 0 6px 12px rgba(56, 189, 248, 0.3);
         }
 
-        .btn:active {
+        #reveal-btn:active {
             transform: translateY(1px);
         }
 
-        /* สไตล์ปุ่มทางเลือกที่ 2 (สีต่างกันนิดหน่อยเพื่อแยกแยะ) */
-        .btn-alt {
-            background: linear-gradient(45deg, #34d399, #10b981);
-        }
-
-        /* ซ่อนปุ่มทั้งหมดเมื่อเลือกทางใดทางหนึ่งแล้ว */
-        .button-container.hidden {
+        /* ซ่อนปุ่มเมื่อกำลังพิมพ์อยู่ */
+        #reveal-btn.hidden {
             display: none;
         }
 
@@ -90,6 +78,7 @@
             text-shadow: 0 0 5px rgba(52, 211, 153, 0.4);
         }
 
+        /* เคอร์เซอร์กระพริบระหว่างพิมพ์ */
         .cursor {
             display: inline-block;
             width: 10px;
@@ -102,35 +91,21 @@
             0%, 100% { opacity: 1; }
             50% { opacity: 0; }
         }
-
-        .instruction-manual {
-            color: #64748b;
-            margin-top: 15px;
-            font-size: 0.9rem;
-            display: none;
-        }
     </style>
 </head>
 <body>
 
-    <!-- 2 ปุ่มเลือกทางเลือก -->
-    <div id="btn-group" class="button-container">
-        <button id="auto-btn" class="btn">🚀 กดเพื่อให้พิมพ์อัตโนมัติ</button>
-        <button id="manual-btn" class="btn btn-alt">⌨️ กดปุ่มคีย์บอร์ด/หน้าจอเพื่อพิมพ์เอง</button>
-    </div>
-
-    <!-- คำแนะนำเพิ่มเติมเฉพาะตอนเลือกโหมดพิมพ์เอง -->
-    <div id="manual-instruction" class="instruction-manual">
-        [ ตอนนี้อยู่ในโหมดอิสระ: กดปุ่มอะไรก็ได้บนคีย์บอร์ดหรือคลิกเพื่อเปิดข้อความ ]
-    </div>
+    <!-- ปุ่มเดียวสำหรับกดเริ่มแสดงผล -->
+    <button id="reveal-btn">▶ กดเพื่อแสดงเนื้อหา</button>
     
     <!-- กล่องแสดงข้อความ -->
     <div id="portfolio-content">
         <span id="text-container"></span>
-        <span id="cursor" class="cursor">&nbsp;</span>
+        <span id="cursor" class="cursor" style="display: none;">&nbsp;</span>
     </div>
 
     <script>
+        // แก้ไขข้อความพอร์ตโฟลิโอของคุณเองตรงนี้ได้เลยครับ
         const portfolioText = `ยินดีต้อนรับสู่ Portfolio ของผม!
 
 ผมคือนักออกแบบเกมที่หลงใหลในการสร้างประสบการณ์ที่น่าจดจำ...
@@ -147,15 +122,10 @@
         
         const textContainer = document.getElementById('text-container');
         const cursor = document.getElementById('cursor');
-        const btnGroup = document.getElementById('btn-group');
-        const autoBtn = document.getElementById('auto-btn');
-        const manualBtn = document.getElementById('manual-btn');
-        const manualInstruction = document.getElementById('manual-instruction');
-        
+        const revealBtn = document.getElementById('reveal-btn');
         let currentIndex = 0;
-        let isModeSelected = false;
 
-        // เตรียมแปลงตัวอักษรใส่ span ไว้ล่วงหน้า
+        // แปลงข้อความทั้งหมดให้เป็น span ตัวอักษรซ่อนไว้ล่วงหน้า
         portfolioText.split('').forEach(char => {
             const span = document.createElement('span');
             span.textContent = char;
@@ -168,58 +138,22 @@
 
         const charElements = document.querySelectorAll('.char');
 
-        // ทางเลือกที่ 1: พิมพ์อัตโนมัติทีละตัวเมื่อกดปุ่มแรก
-        autoBtn.addEventListener('click', () => {
-            if (isModeSelected) return;
-            isModeSelected = true;
-            btnGroup.classList.add('hidden');
+        // เมื่อกดปุ่ม ให้เริ่มกระบวนการพิมพ์อัตโนมัติ
+        revealBtn.addEventListener('click', () => {
+            revealBtn.classList.add('hidden'); // ซ่อนปุ่ม
+            cursor.style.display = 'inline-block'; // แสดงเคอร์เซอร์กระพริบ
 
+            // ตั้งเวลาให้ตัวอักษรค่อยๆ ปรากฏขึ้นมาทีละตัว
             const typingInterval = setInterval(() => {
                 if (currentIndex < charElements.length) {
                     charElements[currentIndex].classList.add('revealed');
                     currentIndex++;
                 } else {
+                    // เมื่อพิมพ์ครบทุกตัวแล้ว ให้หยุดและซ่อนเคอร์เซอร์
                     clearInterval(typingInterval);
                     cursor.style.display = 'none';
                 }
-            }, 50); // ความเร็วในการพิมพ์อัตโนมัติ
-        });
-
-        // ทางเลือกที่ 2: กดปุ่มคีย์บอร์ดหรือคลิกเพื่อเปิดทีละนิดเอง
-        manualBtn.addEventListener('click', () => {
-            if (isModeSelected) return;
-            isModeSelected = true;
-            btnGroup.classList.add('hidden');
-            manualInstruction.style.display = 'block'; // แสดงคำแนะนำวิธีเล่นโหมดนี้
-        });
-
-        // ฟังก์ชันเปิดข้อความทีละหลายตัวเมื่อกดปุ่มคีย์บอร์ดหรือคลิก (ใช้เฉพาะตอนเลือกโหมดที่ 2)
-        function revealByStep() {
-            // ถ้ายังไม่ได้เลือกโหมดที่ 2 หรือข้อความเปิดครบแล้ว ไม่ต้องทำอะไร
-            if (!manualInstruction.style.display || manualInstruction.style.display === 'none') return;
-            
-            if (currentIndex < charElements.length) {
-                for (let i = 0; i < 3; i++) { // กด 1 ครั้ง โผล่มา 3 ตัวอักษร
-                    if (currentIndex < charElements.length) {
-                        charElements[currentIndex].classList.add('revealed');
-                        currentIndex++;
-                    }
-                }
-                if (currentIndex >= charElements.length) {
-                    cursor.style.display = 'none';
-                }
-            }
-        }
-
-        window.addEventListener('keydown', (e) => {
-            if (['F12', 'Control', 'Alt', 'Shift'].includes(e.key)) return;
-            revealByStep();
-        });
-
-        window.addEventListener('click', (e) => {
-            // ป้องกันไม่ให้คลิกโดนปุ่มตอนเลือกโหมดซ้ำซ้อน
-            if (e.target.tagName === 'BUTTON') return;
-            revealByStep();
+            }, 45); // ปรับความเร็วตรงนี้ได้ (เลขน้อยลงจะพิมพ์เร็วขึ้น, มากขึ้นจะพิมพ์ช้าลง)
         });
     </script>
 
