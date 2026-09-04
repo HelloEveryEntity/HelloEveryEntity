@@ -7,12 +7,12 @@
     <style>
         body {
             background-color: #07090e;
-            /* เพิ่มแอนิเมชันเลื่อนเส้นตารางกริดให้ขยับเรื่อยๆ (background-position) */
             background-image: 
                 linear-gradient(rgba(56, 189, 248, 0.05) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(56, 189, 248, 0.05) 1px, transparent 1px);
             background-size: 30px 30px;
-            animation: gridMove 20s linear infinite; /* ความเร็วในการขยับพื้นหลัง (20 วินาทีต่อรอบ) */
+            /* ปรับทิศทางแอนิเมชันให้เลื่อนไปทางซ้ายบน (-30px, -30px) */
+            animation: gridMove 20s linear infinite;
             
             color: #e2e8f0;
             font-family: 'Courier New', Courier, monospace;
@@ -29,17 +29,17 @@
             overflow-x: hidden;
         }
 
-        /* คีย์เฟรมสำหรับเลื่อนตารางกริด */
+        /* คีย์เฟรมเลื่อนตารางกริดไปทางซ้ายบน (ลบค่าพิกัดทั้ง X และ Y) */
         @keyframes gridMove {
             0% {
                 background-position: 0 0;
             }
             100% {
-                background-position: 30px 30px;
+                background-position: -30px -30px;
             }
         }
 
-        /* แสงนีออนเรืองๆ ตรงกลางจอ พร้อมปรับให้กระพริบหายใจเบาๆ เพิ่มมิติ */
+        /* แสงนีออนเรืองๆ ตรงกลางจอ พร้อมกระพริบหายใจเบาๆ */
         body::before {
             content: '';
             position: absolute;
