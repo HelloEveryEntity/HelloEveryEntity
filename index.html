@@ -25,7 +25,7 @@
             padding: 20px;
             box-sizing: border-box;
             position: relative;
-            overflow: hidden;
+            overflow-x: hidden;
         }
 
         @keyframes gridMove {
@@ -37,7 +37,6 @@
             }
         }
 
-        /* --- สไตล์สำหรับก้อนแสงพื้นหลังแบบสุ่มและเปลี่ยนสีได้ --- */
         .bg-orb {
             position: absolute;
             border-radius: 50%;
@@ -46,7 +45,6 @@
             pointer-events: none;
             opacity: 0.35;
             mix-blend-mode: screen;
-            /* แอนิเมชันเปลี่ยนสีวนลูปตลอดเวลา */
             animation: colorShift 12s ease-in-out infinite alternate, floatOrb 20s ease-in-out infinite alternate;
         }
 
@@ -135,20 +133,28 @@
             box-sizing: border-box;
         }
 
-        /* กล่องรูปภาพ */
-        #image-container {
+        /* คอลัมน์ขวา: รวมรูปภาพและปุ่มลิงก์ให้ขนาดกว้างเท่ากัน (220px) */
+        .right-column {
             width: 220px;
-            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
             opacity: 0;
             transform: scale(0.9);
             transition: opacity 0.6s ease, transform 0.6s ease;
             display: none;
         }
 
-        #image-container.show {
-            display: block;
+        .right-column.show {
+            display: flex;
             opacity: 1;
             transform: scale(1);
+        }
+
+        /* กล่องรูปภาพ */
+        #image-container {
+            width: 100%;
+            text-align: center;
         }
 
         #image-container img {
@@ -158,6 +164,7 @@
             box-shadow: 0 8px 20px rgba(56, 189, 248, 0.2);
             cursor: pointer;
             transition: transform 0.3s ease;
+            display: block;
         }
 
         #image-container img:hover {
@@ -168,6 +175,55 @@
             font-size: 0.85rem;
             color: #94a3b8;
             margin-top: 8px;
+        }
+
+        /* --- สไตล์ปุ่มลิงก์ใหม่ (ขนาดเท่ากับกรอบรูป) --- */
+        .port-link-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        .port-link-top-text {
+            font-size: 0.85rem;
+            color: #38bdf8;
+            margin-bottom: 5px;
+            letter-spacing: 1px;
+            font-weight: bold;
+        }
+
+        .port-link-btn {
+            width: 100%;
+            height: 45px;
+            background: linear-gradient(45deg, #0ea5e9, #2563eb);
+            color: #ffffff;
+            border: 2px solid #38bdf8;
+            border-radius: 8px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.95rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-decoration: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .port-link-btn:hover {
+            background: linear-gradient(45deg, #2563eb, #38bdf8);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(56, 189, 248, 0.5);
+        }
+
+        .port-link-bottom-text {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-top: 5px;
+            letter-spacing: 1px;
         }
 
         /* Modal ขยายรูปพร้อม Motion */
@@ -259,9 +315,17 @@
             <span id="cursor" class="cursor">&nbsp;</span>
         </div>
 
-        <div id="image-container">
-            <img id="myImg" src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80" alt="Game Dev Setup">
-            <div class="img-caption">🔍 คลิกที่รูปเพื่อขยายใหญ่</div>
+        <div id="rightColumn" class="right-column">
+            <div id="image-container">
+                <img id="myImg" src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80" alt="Game Dev Setup">
+                <div class="img-caption">🔍 คลิกที่รูปเพื่อขยายใหญ่</div>
+            </div>
+
+            <div class="port-link-wrapper">
+                <div class="port-link-top-text">Port Link</div>
+                <a href="https://github.com" target="_blank" class="port-link-btn">VISIT PORT</a>
+                <div class="port-link-bottom-text">Go To Port</div>
+            </div>
         </div>
     </div>
 
@@ -271,29 +335,22 @@
     </div>
 
     <script>
-        // --- ระบบสุ่มก้อนแสงพื้นหลัง (3-6 ก้อน) เมื่อรีเฟรช ---
+        // ระบบสุ่มก้อนแสงพื้นหลัง (3-6 ก้อน)
         window.addEventListener('DOMContentLoaded', () => {
             const orbContainer = document.getElementById('orb-container');
-            const orbCount = Math.floor(Math.random() * 4) + 3; // สุ่มเลขระหว่าง 3 ถึง 6
+            const orbCount = Math.floor(Math.random() * 4) + 3;
             const colors = ['#38bdf8', '#34d399', '#a78bfa', '#f472b6', '#38ef7d'];
 
             for (let i = 0; i < orbCount; i++) {
                 const orb = document.createElement('div');
                 orb.className = 'bg-orb';
-
-                // สุ่มขนาด (ระหว่าง 250px ถึง 450px)
                 const size = Math.floor(Math.random() * 200) + 250;
                 orb.style.width = `${size}px`;
                 orb.style.height = `${size}px`;
-
-                // สุ่มตำแหน่งบนหน้าจอ (เปอร์เซ็นต์)
                 orb.style.top = `${Math.random() * 80}%`;
                 orb.style.left = `${Math.random() * 80}%`;
-
-                // สุ่มสีเริ่มต้นและปรับความเร็วแอนิเมชันให้แต่ละก้อนไม่เท่ากัน จะได้ดูธรรมชาติ
                 orb.style.background = colors[Math.floor(Math.random() * colors.length)];
                 orb.style.animationDuration = `${Math.random() * 10 + 10}s, ${Math.random() * 15 + 15}s`;
-
                 orbContainer.appendChild(orb);
             }
         });
@@ -315,7 +372,7 @@
         const textContainer = document.getElementById('text-container');
         const cursor = document.getElementById('cursor');
         const autoBtn = document.getElementById('auto-btn');
-        const imageContainer = document.getElementById('image-container');
+        const rightColumn = document.getElementById('rightColumn');
         
         const modal = document.getElementById('imageModal');
         const img = document.getElementById('myImg');
@@ -369,7 +426,7 @@
                         }
 
                         if (lineBreakCount >= 5) {
-                            imageContainer.classList.add('show');
+                            rightColumn.classList.add('show');
                         }
                     }
 
@@ -378,7 +435,7 @@
                     isFinished = true;
                     cursor.style.display = 'none';
                     autoBtn.style.display = 'none';
-                    imageContainer.classList.add('show');
+                    rightColumn.classList.add('show');
                     break;
                 }
             }
@@ -392,7 +449,8 @@
         });
 
         window.addEventListener('click', (e) => {
-            if (e.target.id === 'auto-btn' || e.target.id === 'myImg' || modal.classList.contains('active')) return;
+            // ป้องกันไม่ให้นับการคลิกปุ่มลิงก์เป็นการรันตัวอักษรต่อ
+            if (e.target.id === 'auto-btn' || e.target.id === 'myImg' || e.target.closest('.port-link-btn') || modal.classList.contains('active')) return;
             if (autoInterval) return;
             revealSteps(3);
         });
@@ -409,7 +467,7 @@
                 } else {
                     clearInterval(autoInterval);
                     autoBtn.style.display = 'none';
-                    imageContainer.classList.add('show');
+                    rightColumn.classList.add('show');
                 }
             }, 30);
         });
