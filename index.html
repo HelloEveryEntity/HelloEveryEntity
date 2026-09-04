@@ -28,7 +28,7 @@
             text-transform: uppercase;
         }
 
-        /* ปุ่ม RevealAll (ซ่อนไว้จนกว่าจะถึงบรรทัดที่ 3) */
+        /* ปุ่ม RevealAll */
         #auto-btn {
             background: linear-gradient(45deg, #38bdf8, #22d3ee);
             color: #0f172a;
@@ -64,7 +64,7 @@
             transform: translateY(1px);
         }
 
-        /* ส่วนแสดงผลหลัก: จัดวางกล่องข้อความกับรูปภาพให้อยู่ด้วยกัน */
+        /* ส่วนแสดงผลหลัก */
         .main-container {
             display: flex;
             gap: 30px;
@@ -75,7 +75,7 @@
             flex-wrap: wrap;
         }
 
-        /* กล่องแสดงข้อความ */
+        /* กล่องข้อความ */
         #portfolio-content {
             font-size: 1.1rem;
             line-height: 1.8;
@@ -91,17 +91,16 @@
             box-sizing: border-box;
         }
 
-        /* สไตล์กล่องรูปภาพที่จะโผล่มาตอนพิมพ์ถึงบรรทัดที่กำหนด */
+        /* กล่องรูปภาพ */
         #image-container {
             width: 220px;
             text-align: center;
             opacity: 0;
             transform: scale(0.9);
             transition: opacity 0.6s ease, transform 0.6s ease;
-            display: none; /* ซ่อนไว้เริ่มต้น */
+            display: none;
         }
 
-        /* เมื่อแสดงรูปภาพ */
         #image-container.show {
             display: block;
             opacity: 1;
@@ -113,12 +112,49 @@
             border-radius: 10px;
             border: 2px solid #38bdf8;
             box-shadow: 0 8px 20px rgba(56, 189, 248, 0.2);
+            cursor: pointer; /* เปลี่ยนเมาส์เป็นรูปนิ้วมือเวลาชี้ เพื่อบอกว่าคลิกได้ */
+            transition: transform 0.3s ease;
+        }
+
+        #image-container img:hover {
+            transform: scale(1.03); /* ขยายขึ้นนิดหน่อยเวลาเอาเมาส์ชี้ */
         }
 
         .img-caption {
             font-size: 0.85rem;
             color: #94a3b8;
             margin-top: 8px;
+        }
+
+        /* Modal สำหรับแสดงรูปขนาดใหญ่เต็มจอเวลาคลิก */
+        #imageModal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            cursor: pointer;
+        }
+
+        #modalImg {
+            max-width: 85%;
+            max-height: 80vh;
+            border-radius: 10px;
+            border: 2px solid #38bdf8;
+            box-shadow: 0 0 30px rgba(56, 189, 248, 0.5);
+        }
+
+        .modal-text {
+            color: #e2e8f0;
+            margin-top: 15px;
+            font-size: 1rem;
+            letter-spacing: 1px;
         }
 
         .char {
@@ -153,23 +189,27 @@
     <!-- ปุ่ม RevealAll -->
     <button id="auto-btn">RevealAll</button>
 
-    <!-- พื้นที่แสดงข้อความและรูปภาพประกอบ -->
+    <!-- พื้นที่แสดงข้อความและรูปภาพ -->
     <div class="main-container">
         <div id="portfolio-content">
             <span id="text-container"></span>
             <span id="cursor" class="cursor">&nbsp;</span>
         </div>
 
-        <!-- รูปภาพที่จะโผล่มาเมื่อพิมพ์ถึงบรรทัดที่กำหนด -->
         <div id="image-container">
-            <!-- เปลี่ยน src เป็นลิงก์รูปภาพของคุณได้เลย -->
-            <img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=400&q=80" alt="Game Dev Setup">
-            <div class="img-caption">⚡ Game Designer Workspace</div>
+            <!-- รูปภาพหลัก (คลิกเพื่อขยายได้) -->
+            <img id="myImg" src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80" alt="Game Dev Setup">
+            <div class="img-caption">🔍 คลิกที่รูปเพื่อขยายใหญ่</div>
         </div>
     </div>
 
+    <!-- หน้าต่าง Modal สำหรับแสดงรูปใหญ่ -->
+    <div id="imageModal">
+        <img id="modalImg">
+        <div class="modal-text">[ คลิกที่ไหนก็ได้เพื่อปิด ]</div>
+    </div>
+
     <script>
-        // ข้อความใน Portfolio
         const portfolioText = `ยินดีต้อนรับสู่ Portfolio ของผม!
 
 ผมคือนักออกแบบเกมที่หลงใหลในการสร้างประสบการณ์ที่น่าจดจำ...
@@ -189,12 +229,27 @@
         const autoBtn = document.getElementById('auto-btn');
         const imageContainer = document.getElementById('image-container');
         
+        // ตัวแปรสำหรับระบบขยายรูป
+        const modal = document.getElementById('imageModal');
+        const img = document.getElementById('myImg');
+        const modalImg = document.getElementById('modalImg');
+
+        // เมื่อคลิกที่รูปเล็ก ให้เปิดหน้าต่างขยายใหญ่
+        img.addEventListener('click', () => {
+            modal.style.display = 'flex';
+            modalImg.src = img.src;
+        });
+
+        // เมื่อคลิกที่หน้าต่างมืดๆ ตรงไหนก็ได้ จะปิดรูปใหญ่
+        modal.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+
         let currentIndex = 0;
         let isFinished = false;
         let autoInterval = null;
         let lineBreakCount = 0; 
 
-        // แปลงข้อความทั้งหมดเป็นสแปนย่อยๆ
         portfolioText.split('').forEach(char => {
             const span = document.createElement('span');
             span.textContent = char;
@@ -207,7 +262,6 @@
 
         const charElements = document.querySelectorAll('.char');
 
-        // ฟังก์ชันเปิดข้อความทีละตัว
         function revealSteps(count = 3) {
             if (isFinished) return;
             
@@ -216,16 +270,13 @@
                     const currentSpan = charElements[currentIndex];
                     currentSpan.classList.add('revealed');
                     
-                    // เช็กการขึ้นบรรทัดใหม่
                     if (currentSpan.textContent === '\n' || currentSpan.innerHTML === '<br>') {
                         lineBreakCount++;
                         
-                        // เมื่อพิมพ์ไปถึงบรรทัดที่ 3 ให้แสดงปุ่ม RevealAll
                         if (lineBreakCount >= 3) {
                             autoBtn.classList.add('show');
                         }
 
-                        // *ลูกเล่นใหม่*: เมื่อพิมพ์ไปถึง "บรรทัดที่ 5" (หรือเปลี่ยนเลขตามชอบ) ให้รูปภาพโผล่ขึ้นมา!
                         if (lineBreakCount >= 5) {
                             imageContainer.classList.add('show');
                         }
@@ -236,13 +287,12 @@
                     isFinished = true;
                     cursor.style.display = 'none';
                     autoBtn.style.display = 'none';
-                    imageContainer.classList.add('show'); // เผื่อพิมพ์จนจบแล้วรูปยังไม่โผล่
+                    imageContainer.classList.add('show');
                     break;
                 }
             }
         }
 
-        // คีย์บอร์ดและเมาส์คลิกเพื่อพิมพ์
         window.addEventListener('keydown', (e) => {
             if (['F12', 'Control', 'Alt', 'Shift'].includes(e.key)) return;
             if (autoInterval) return; 
@@ -250,12 +300,12 @@
         });
 
         window.addEventListener('click', (e) => {
-            if (e.target.id === 'auto-btn') return;
+            // ป้องกันไม่ให้คลิกขยายรูปแล้วนับเป็นการพิมพ์ข้อความ
+            if (e.target.id === 'auto-btn' || e.target.id === 'myImg' || modal.style.display === 'flex') return;
             if (autoInterval) return;
             revealSteps(3);
         });
 
-        // ปุ่ม RevealAll (เปิดอัตโนมัติรัวๆ จนจบ)
         autoBtn.addEventListener('click', () => {
             if (isFinished || autoInterval) return;
             
