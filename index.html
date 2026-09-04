@@ -25,7 +25,7 @@
             padding: 20px;
             box-sizing: border-box;
             position: relative;
-            overflow: hidden; /* ซ่อนก้อนแสงที่ลอยออกนอกจอ */
+            overflow: hidden;
         }
 
         @keyframes gridMove {
@@ -37,62 +37,29 @@
             }
         }
 
-        /* --- ระบบก้อนแสงลอยไปมาในพื้นหลัง (Background Orbs) --- */
+        /* --- สไตล์สำหรับก้อนแสงพื้นหลังแบบสุ่มและเปลี่ยนสีได้ --- */
         .bg-orb {
             position: absolute;
             border-radius: 50%;
-            filter: blur(60px); /* ทำให้แสงฟุ้งเนียนๆ */
-            z-index: -2; /* อยู่หลังสุด */
+            filter: blur(70px);
+            z-index: -2;
             pointer-events: none;
-            opacity: 0.4;
+            opacity: 0.35;
+            mix-blend-mode: screen;
+            /* แอนิเมชันเปลี่ยนสีวนลูปตลอดเวลา */
+            animation: colorShift 12s ease-in-out infinite alternate, floatOrb 20s ease-in-out infinite alternate;
         }
 
-        /* ก้อนที่ 1: สีฟ้า (ลอยวนช้าๆ) */
-        .orb-1 {
-            width: 350px;
-            height: 350px;
-            background: #38bdf8;
-            top: 10%;
-            left: 15%;
-            animation: floatOrb1 18s ease-in-out infinite alternate;
+        @keyframes colorShift {
+            0% { filter: blur(70px) hue-rotate(0deg); }
+            50% { filter: blur(75px) hue-rotate(180deg); }
+            100% { filter: blur(70px) hue-rotate(360deg); }
         }
 
-        /* ก้อนที่ 2: สีเขียวมรกต (เข้ากับธีมตัวอักษร) */
-        .orb-2 {
-            width: 400px;
-            height: 400px;
-            background: #34d399;
-            bottom: 10%;
-            right: 15%;
-            animation: floatOrb2 22s ease-in-out infinite alternate;
-        }
-
-        /* ก้อนที่ 3: สีฟ้าครามเข้ม (ลอยตัดตรงกลาง) */
-        .orb-3 {
-            width: 300px;
-            height: 300px;
-            background: #0ea5e9;
-            top: 50%;
-            left: 60%;
-            animation: floatOrb3 15s ease-in-out infinite alternate;
-        }
-
-        @keyframes floatOrb1 {
+        @keyframes floatOrb {
             0% { transform: translate(0, 0) scale(1); }
-            50% { transform: translate(100px, 80px) scale(1.2); }
-            100% { transform: translate(-50px, 120px) scale(0.9); }
-        }
-
-        @keyframes floatOrb2 {
-            0% { transform: translate(0, 0) scale(1); }
-            50% { transform: translate(-120px, -90px) scale(1.1); }
-            100% { transform: translate(80px, -150px) scale(1.3); }
-        }
-
-        @keyframes floatOrb3 {
-            0% { transform: translate(0, 0) scale(0.9); }
-            50% { transform: translate(-90px, 100px) scale(1.2); }
-            100% { transform: translate(110px, -70px) scale(1); }
+            50% { transform: translate(120px, -90px) scale(1.25); }
+            100% { transform: translate(-100px, 140px) scale(0.85); }
         }
 
         .instruction {
@@ -148,7 +115,7 @@
             align-items: center;
             justify-content: center;
             flex-wrap: wrap;
-            z-index: 1; /* อยู่เหนือแสงพื้นหลัง */
+            z-index: 1;
         }
 
         /* กล่องข้อความ */
@@ -280,17 +247,12 @@
 </head>
 <body>
 
-    <!-- ก้อนแสงพื้นหลังทั้ง 3 ก้อน -->
-    <div class="bg-orb orb-1"></div>
-    <div class="bg-orb orb-2"></div>
-    <div class="bg-orb orb-3"></div>
+    <div id="orb-container"></div>
 
     <div class="instruction">[ Type to continue ]</div>
     
-    <!-- ปุ่ม RevealAll -->
     <button id="auto-btn">RevealAll</button>
 
-    <!-- พื้นที่แสดงผลหลัก -->
     <div class="main-container">
         <div id="portfolio-content">
             <span id="text-container"></span>
@@ -298,19 +260,44 @@
         </div>
 
         <div id="image-container">
-            <!-- หากต้องการใช้รูปในเครื่อง ให้เปลี่ยน src เป็นชื่อไฟล์รูปของคุณ เช่น src="my-image.png" -->
             <img id="myImg" src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80" alt="Game Dev Setup">
             <div class="img-caption">🔍 คลิกที่รูปเพื่อขยายใหญ่</div>
         </div>
     </div>
 
-    <!-- หน้าต่าง Modal สำหรับแสดงรูปใหญ่พร้อม Motion -->
     <div id="imageModal">
         <img id="modalImg">
         <div class="modal-text">[ คลิกที่ไหนก็ได้เพื่อปิด ]</div>
     </div>
 
     <script>
+        // --- ระบบสุ่มก้อนแสงพื้นหลัง (3-6 ก้อน) เมื่อรีเฟรช ---
+        window.addEventListener('DOMContentLoaded', () => {
+            const orbContainer = document.getElementById('orb-container');
+            const orbCount = Math.floor(Math.random() * 4) + 3; // สุ่มเลขระหว่าง 3 ถึง 6
+            const colors = ['#38bdf8', '#34d399', '#a78bfa', '#f472b6', '#38ef7d'];
+
+            for (let i = 0; i < orbCount; i++) {
+                const orb = document.createElement('div');
+                orb.className = 'bg-orb';
+
+                // สุ่มขนาด (ระหว่าง 250px ถึง 450px)
+                const size = Math.floor(Math.random() * 200) + 250;
+                orb.style.width = `${size}px`;
+                orb.style.height = `${size}px`;
+
+                // สุ่มตำแหน่งบนหน้าจอ (เปอร์เซ็นต์)
+                orb.style.top = `${Math.random() * 80}%`;
+                orb.style.left = `${Math.random() * 80}%`;
+
+                // สุ่มสีเริ่มต้นและปรับความเร็วแอนิเมชันให้แต่ละก้อนไม่เท่ากัน จะได้ดูธรรมชาติ
+                orb.style.background = colors[Math.floor(Math.random() * colors.length)];
+                orb.style.animationDuration = `${Math.random() * 10 + 10}s, ${Math.random() * 15 + 15}s`;
+
+                orbContainer.appendChild(orb);
+            }
+        });
+
         const portfolioText = `ยินดีต้อนรับสู่ Portfolio ของผม!
 
 ผมคือนักออกแบบเกมที่หลงใหลในการสร้างประสบการณ์ที่น่าจดจำ...
