@@ -6,12 +6,14 @@
     <title>Interactive Portfolio</title>
     <style>
         body {
-            /* พื้นหลังแบบเส้นตารางกริดแนวเรโทร/ไซเบอร์พังก์ */
             background-color: #07090e;
+            /* เพิ่มแอนิเมชันเลื่อนเส้นตารางกริดให้ขยับเรื่อยๆ (background-position) */
             background-image: 
                 linear-gradient(rgba(56, 189, 248, 0.05) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(56, 189, 248, 0.05) 1px, transparent 1px);
             background-size: 30px 30px;
+            animation: gridMove 20s linear infinite; /* ความเร็วในการขยับพื้นหลัง (20 วินาทีต่อรอบ) */
+            
             color: #e2e8f0;
             font-family: 'Courier New', Courier, monospace;
             display: flex;
@@ -27,18 +29,34 @@
             overflow-x: hidden;
         }
 
-        /* เพิ่มแสงนีออนเรืองๆ ตรงกลางจอเพิ่มมิติ */
+        /* คีย์เฟรมสำหรับเลื่อนตารางกริด */
+        @keyframes gridMove {
+            0% {
+                background-position: 0 0;
+            }
+            100% {
+                background-position: 30px 30px;
+            }
+        }
+
+        /* แสงนีออนเรืองๆ ตรงกลางจอ พร้อมปรับให้กระพริบหายใจเบาๆ เพิ่มมิติ */
         body::before {
             content: '';
             position: absolute;
-            width: 500px;
-            height: 500px;
-            background: radial-gradient(circle, rgba(56, 189, 248, 0.08) 0%, transparent 70%);
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.1) 0%, transparent 70%);
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             z-index: -1;
             pointer-events: none;
+            animation: pulseGlow 6s ease-in-out infinite;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.4; }
         }
 
         .instruction {
@@ -103,7 +121,7 @@
             flex: 1;
             min-width: 300px;
             text-align: left;
-            background: rgba(30, 41, 59, 0.85); /* ทำหลังคากล่องให้โปร่งแสงนิดๆ เห็นลายกริดทะลุผ่านเบาๆ */
+            background: rgba(30, 41, 59, 0.85);
             backdrop-filter: blur(5px);
             padding: 30px;
             border-radius: 12px;
@@ -238,7 +256,7 @@
         </div>
 
         <div id="image-container">
-            <!-- หากต้องการเปลี่ยนเป็นรูปในเครื่อง ให้แก้ src เป็นชื่อไฟล์รูปของคุณได้เลย เช่น src="my-image.png" -->
+            <!-- หากต้องการใช้รูปในเครื่อง ให้เปลี่ยน src เป็นชื่อไฟล์รูปของคุณ เช่น src="my-image.png" -->
             <img id="myImg" src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80" alt="Game Dev Setup">
             <div class="img-caption">🔍 คลิกที่รูปเพื่อขยายใหญ่</div>
         </div>
