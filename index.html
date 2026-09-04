@@ -112,12 +112,12 @@
             border-radius: 10px;
             border: 2px solid #38bdf8;
             box-shadow: 0 8px 20px rgba(56, 189, 248, 0.2);
-            cursor: pointer; /* เปลี่ยนเมาส์เป็นรูปนิ้วมือเวลาชี้ เพื่อบอกว่าคลิกได้ */
+            cursor: pointer;
             transition: transform 0.3s ease;
         }
 
         #image-container img:hover {
-            transform: scale(1.03); /* ขยายขึ้นนิดหน่อยเวลาเอาเมาส์ชี้ */
+            transform: scale(1.03);
         }
 
         .img-caption {
@@ -126,7 +126,7 @@
             margin-top: 8px;
         }
 
-        /* Modal สำหรับแสดงรูปขนาดใหญ่เต็มจอเวลาคลิก */
+        /* Modal พร้อม Motion แอนิเมชันขยายเข้า-ออก */
         #imageModal {
             display: none;
             position: fixed;
@@ -135,11 +135,16 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.85);
+            background-color: rgba(0, 0, 0, 0); /* เริ่มต้นฉากหลังใส */
             justify-content: center;
             align-items: center;
             flex-direction: column;
             cursor: pointer;
+            transition: background-color 0.4s ease; /* โมชั่นเฟดสีพื้นหลัง */
+        }
+
+        #imageModal.active {
+            background-color: rgba(0, 0, 0, 0.85); /* เฟดให้มืดลงตอนเปิด */
         }
 
         #modalImg {
@@ -148,6 +153,14 @@
             border-radius: 10px;
             border: 2px solid #38bdf8;
             box-shadow: 0 0 30px rgba(56, 189, 248, 0.5);
+            transform: scale(0.5); /* เริ่มต้นรูปขนาดเล็ก */
+            opacity: 0;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease; /* โมชั่นเด้งสมูท (Spring effect เล็กน้อย) */
+        }
+
+        #imageModal.active #modalImg {
+            transform: scale(1); /* ขยายเต็มขนาด */
+            opacity: 1;
         }
 
         .modal-text {
@@ -155,6 +168,12 @@
             margin-top: 15px;
             font-size: 1rem;
             letter-spacing: 1px;
+            opacity: 0;
+            transition: opacity 0.3s ease 0.2s;
+        }
+
+        #imageModal.active .modal-text {
+            opacity: 1;
         }
 
         .char {
@@ -197,13 +216,12 @@
         </div>
 
         <div id="image-container">
-            <!-- รูปภาพหลัก (คลิกเพื่อขยายได้) -->
             <img id="myImg" src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80" alt="Game Dev Setup">
             <div class="img-caption">🔍 คลิกที่รูปเพื่อขยายใหญ่</div>
         </div>
     </div>
 
-    <!-- หน้าต่าง Modal สำหรับแสดงรูปใหญ่ -->
+    <!-- หน้าต่าง Modal สำหรับแสดงรูปใหญ่พร้อม Motion -->
     <div id="imageModal">
         <img id="modalImg">
         <div class="modal-text">[ คลิกที่ไหนก็ได้เพื่อปิด ]</div>
@@ -229,20 +247,25 @@
         const autoBtn = document.getElementById('auto-btn');
         const imageContainer = document.getElementById('image-container');
         
-        // ตัวแปรสำหรับระบบขยายรูป
         const modal = document.getElementById('imageModal');
         const img = document.getElementById('myImg');
         const modalImg = document.getElementById('modalImg');
 
-        // เมื่อคลิกที่รูปเล็ก ให้เปิดหน้าต่างขยายใหญ่
+        // เปิดรูปใหญ่พร้อมใส่คลาส active เพื่อเล่น Motion ขยาย
         img.addEventListener('click', () => {
-            modal.style.display = 'flex';
             modalImg.src = img.src;
+            modal.style.display = 'flex';
+            setTimeout(() => {
+                modal.classList.add('active');
+            }, 10); // ดีเลย์เล็กน้อยเพื่อให้เบราว์เซอร์เรนเดอร์ทัน
         });
 
-        // เมื่อคลิกที่หน้าต่างมืดๆ ตรงไหนก็ได้ จะปิดรูปใหญ่
+        // ปิดรูปใหญ่ (เล่น Motion ย่อเก็บเข้าที่เดิมก่อนซ่อน)
         modal.addEventListener('click', () => {
-            modal.style.display = 'none';
+            modal.classList.remove('active');
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 400); // รอให้แอนิเมชันเล่นจบ (0.4 วินาที) แล้วค่อยซ่อน display
         });
 
         let currentIndex = 0;
@@ -296,12 +319,12 @@
         window.addEventListener('keydown', (e) => {
             if (['F12', 'Control', 'Alt', 'Shift'].includes(e.key)) return;
             if (autoInterval) return; 
+            if (modal.classList.contains('active')) return; // ถ้าเปิดรูปใหญ่อยู่ ไม่ให้พิมพ์ข้อความ
             revealSteps(3);
         });
 
         window.addEventListener('click', (e) => {
-            // ป้องกันไม่ให้คลิกขยายรูปแล้วนับเป็นการพิมพ์ข้อความ
-            if (e.target.id === 'auto-btn' || e.target.id === 'myImg' || modal.style.display === 'flex') return;
+            if (e.target.id === 'auto-btn' || e.target.id === 'myImg' || modal.classList.contains('active')) return;
             if (autoInterval) return;
             revealSteps(3);
         });
