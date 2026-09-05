@@ -25,7 +25,7 @@
             padding: 20px;
             box-sizing: border-box;
             position: relative;
-            overflow-x: hidden;
+            overflow: hidden;
         }
 
         @keyframes gridMove {
@@ -35,6 +35,19 @@
             to {
                 background-position: -300px -300px;
             }
+        }
+
+        /* --- สไตล์สำหรับรูปภาพที่ร่วงหล่น (ควบคุมตำแหน่งผ่าน JS) --- */
+        .falling-img {
+            position: absolute;
+            top: -120px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid #38bdf8;
+            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
+            pointer-events: none;
+            z-index: 0;
+            will-change: transform, opacity;
         }
 
         .bg-orb {
@@ -66,6 +79,7 @@
             font-size: 0.95rem;
             letter-spacing: 2px;
             text-transform: uppercase;
+            z-index: 1;
         }
 
         /* ปุ่ม RevealAll */
@@ -87,6 +101,7 @@
             opacity: 0;
             transform: translateY(-10px);
             transition: opacity 0.5s ease, transform 0.5s ease;
+            z-index: 1;
         }
 
         #auto-btn.show {
@@ -123,7 +138,7 @@
             flex: 1;
             min-width: 300px;
             text-align: left;
-            background: rgba(15, 23, 42, 0.8);
+            background: rgba(15, 23, 42, 0.85);
             backdrop-filter: blur(8px);
             padding: 30px;
             border-radius: 12px;
@@ -133,7 +148,7 @@
             box-sizing: border-box;
         }
 
-        /* คอลัมน์ขวา: รวมรูปภาพและปุ่มลิงก์ให้ขนาดกว้างเท่ากัน (220px) */
+        /* คอลัมน์ขวา */
         .right-column {
             width: 220px;
             display: flex;
@@ -151,7 +166,7 @@
             transform: scale(1);
         }
 
-        /* กล่องรูปภาพ */
+        /* กล่องรูปภาพหลัก */
         #image-container {
             width: 100%;
             text-align: center;
@@ -177,7 +192,7 @@
             margin-top: 8px;
         }
 
-        /* --- สไตล์ปุ่มลิงก์ใหม่ (ขนาดเท่ากับกรอบรูป) --- */
+        /* สไตล์ปุ่มลิงก์พอร์ตโฟลิโอ */
         .port-link-wrapper {
             display: flex;
             flex-direction: column;
@@ -226,7 +241,7 @@
             letter-spacing: 1px;
         }
 
-        /* Modal ขยายรูปพร้อม Motion */
+        /* Modal ขยายรูป */
         #imageModal {
             display: none;
             position: fixed;
@@ -304,6 +319,7 @@
 <body>
 
     <div id="orb-container"></div>
+    <div id="rain-container"></div>
 
     <div class="instruction">[ Type to continue ]</div>
     
@@ -335,12 +351,14 @@
     </div>
 
     <script>
-        // ระบบสุ่มก้อนแสงพื้นหลัง (3-6 ก้อน)
+        // --- ระบบฝนรูปภาพด้วย JavaScript (สุ่มขนาด + เลือนหายตามเวลาและหลุดจอ) ---
         window.addEventListener('DOMContentLoaded', () => {
             const orbContainer = document.getElementById('orb-container');
+            const rainContainer = document.getElementById('rain-container');
+
+            // สุ่มก้อนแสงพื้นหลัง
             const orbCount = Math.floor(Math.random() * 4) + 3;
             const colors = ['#38bdf8', '#34d399', '#a78bfa', '#f472b6', '#38ef7d'];
-
             for (let i = 0; i < orbCount; i++) {
                 const orb = document.createElement('div');
                 orb.className = 'bg-orb';
@@ -353,8 +371,85 @@
                 orb.style.animationDuration = `${Math.random() * 10 + 10}s, ${Math.random() * 15 + 15}s`;
                 orbContainer.appendChild(orb);
             }
+
+            // 1. รายการรูปชั่วคราว 10 รูป (สามารถเปลี่ยนเป็นชื่อไฟล์ในเครื่องของคุณได้ทีหลัง)
+            const rainImages = [
+                "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=300&q=80",
+                "https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=300&q=80",
+                "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=300&q=80",
+                "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?auto=format&fit=crop&w=300&q=80",
+                "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=300&q=80",
+                "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=300&q=80",
+                "https://images.unsplash.com/photo-1563089145-599997674d42?auto=format&fit=crop&w=300&q=80",
+                "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=300&q=80",
+                "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=300&q=80",
+                "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=300&q=80"
+            ];
+
+            const totalDrops = 22; // จำนวนรูปที่ร่วงพร้อมกัน (แน่นสะใจ)
+
+            for (let i = 0; i < totalDrops; i++) {
+                createFallingImage();
+            }
+
+            function createFallingImage() {
+                const img = document.createElement('img');
+                img.className = 'falling-img';
+                img.src = rainImages[Math.floor(Math.random() * rainImages.length)];
+                
+                // 2. กำหนดขนาดให้พอเหมาะ (ระหว่าง 65px ถึง 105px) และสุ่มขนาดต่อรูป
+                const width = Math.floor(Math.random() * 40) + 65;
+                img.style.width = `${width}px`;
+
+                // สุ่มตำแหน่งแนวนอน
+                let posX = Math.random() * 95;
+                img.style.left = `${posX}%`;
+
+                // กำหนดค่าเริ่มต้นสำหรับการเคลื่อนไหวผ่าน JS
+                let posY = -150; // เริ่มต้นเหนือจอ
+                let speed = Math.random() * 1.5 + 1.2; // ความเร็วในการร่วง
+                let rotation = Math.random() * 60 - 30; // มุมเอียงเริ่มต้น
+                let rotSpeed = Math.random() * 0.8 - 0.4; // ความเร็วในการหมุนตัว
+                let opacity = 0;
+                let maxOpacity = Math.random() * 0.4 + 0.4; // ความโปร่งใสสูงสุด (0.4 - 0.8)
+
+                rainContainer.appendChild(img);
+
+                function animateDrop() {
+                    posY += speed;
+                    rotation += rotSpeed;
+
+                    // 4. ระบบเลือนหายตามเวลา (Fade In ตอนต้น และ Fade Out เมื่อใกล้ขอบล่างจอ)
+                    let screenHeight = window.innerHeight;
+                    if (posY < 100) {
+                        opacity = Math.min(maxOpacity, opacity + 0.03); // ค่อยๆ ปรากฏตอนเริ่มตก
+                    } else if (posY > screenHeight - 200) {
+                        opacity = Math.max(0, opacity - 0.02); // ค่อยๆ เลือนหายเมื่อใกล้ถึงขอบล่าง
+                    } else {
+                        opacity = maxOpacity;
+                    }
+
+                    img.style.transform = `translateY(${posY}px) rotate(${rotation}deg)`;
+                    img.style.opacity = opacity;
+
+                    // ถ้าร่วงพ้นขอบล่างจอไปแล้ว ให้รีเซ็ตตำแหน่งกลับไปด้านบนสุดใหม่ทันที (วนลูปไม่รู้จบ)
+                    if (posY > screenHeight + 100) {
+                        img.remove();
+                        createFallingImage(); // สร้างรูปใหม่มาแทนที่
+                        return;
+                    }
+
+                    requestAnimationFrame(animateDrop);
+                }
+
+                // ดีเลย์เวลาเริ่มต้นไม่ให้ร่วงลงมาพรวดเดียวพร้อมกันตอนรีเฟรช
+                setTimeout(() => {
+                    requestAnimationFrame(animateDrop);
+                }, Math.random() * 6000);
+            }
         });
 
+        // --- ระบบพิมพ์ข้อความ ---
         const portfolioText = `ยินดีต้อนรับสู่ Portfolio ของผม!
 
 ผมคือนักออกแบบเกมที่หลงใหลในการสร้างประสบการณ์ที่น่าจดจำ...
@@ -449,7 +544,6 @@
         });
 
         window.addEventListener('click', (e) => {
-            // ป้องกันไม่ให้นับการคลิกปุ่มลิงก์เป็นการรันตัวอักษรต่อ
             if (e.target.id === 'auto-btn' || e.target.id === 'myImg' || e.target.closest('.port-link-btn') || modal.classList.contains('active')) return;
             if (autoInterval) return;
             revealSteps(3);
