@@ -354,8 +354,8 @@
 </head>
 <body>
 
-    <!-- ตัวนับเควสที่มุมขวาบน -->
-    <div id="quest-tracker">🎯 เควสลับ: <span id="quest-count">0</span> / 15</div>
+    <!-- ตัวนับเควสที่มุมขวาบน (บอกชัดเจนว่าให้พิมพ์ 15 ครั้ง) -->
+    <div id="quest-tracker">🎯 เควสพิมพ์ 15 ครั้ง: <span id="quest-count">0</span> / 15</div>
 
     <div id="orb-container"></div>
     <div id="rain-container"></div>
@@ -390,28 +390,26 @@
     </div>
 
     <script>
-        // --- ตัวแปรสำหรับระบบเควส ---
-        let clickCount = 0;
+        // --- ตัวแปรสำหรับระบบเควสพิมพ์ 15 ครั้ง ---
+        let typeCount = 0;
         let isQuestCompleted = false;
-        const targetClicks = 15;
+        const targetTypes = 15;
         const questTracker = document.getElementById('quest-tracker');
         const questCountSpan = document.getElementById('quest-count');
 
-        // ตรวจจับการคลิกเพื่อทำเควส (นับเฉพาะการคลิกทั่วไปที่ไม่ใช่ปุ่มหรือรูปขยาย)
-        window.addEventListener('click', (e) => {
-            if (e.target.id === 'auto-btn' || e.target.id === 'myImg' || e.target.closest('.port-link-btn') || modal.classList.contains('active')) return;
-            
+        // ฟังก์ชันอัปเดตความคืบหน้าเควสการพิมพ์
+        function handleQuestTyping() {
             if (!isQuestCompleted) {
-                clickCount++;
-                questCountSpan.textContent = clickCount;
+                typeCount++;
+                questCountSpan.textContent = typeCount;
 
-                if (clickCount >= targetClicks) {
+                if (typeCount >= targetTypes) {
                     isQuestCompleted = true;
                     questTracker.classList.add('completed');
-                    questTracker.innerHTML = "✨ เควสสำเร็จ! รูปหมุนเร็วขึ้น X3!";
+                    questTracker.innerHTML = "✨ เควสพิมพ์ครบ 15 ครั้งสำเร็จ! รูปหมุนเร็วขึ้น X3!";
                 }
             }
-        });
+        }
 
         // --- ระบบฝนรูปภาพ ---
         window.addEventListener('DOMContentLoaded', () => {
@@ -466,14 +464,13 @@
                 let posY = -150;
                 let speed = Math.random() * 1.5 + 1.2;
                 let rotation = Math.random() * 60 - 30;
-                let rotSpeed = Math.random() * 0.8 - 0.4; // ความเร็วหมุนปกติ
+                let rotSpeed = Math.random() * 0.8 - 0.4;
                 let opacity = 0;
                 let maxOpacity = Math.random() * 0.4 + 0.4;
 
                 rainContainer.appendChild(img);
 
                 function animateDrop() {
-                    // ถ้าทำเควสสำเร็จแล้ว ให้ความเร็วในการหมุนเพิ่มขึ้น 3 เท่า
                     let currentRotSpeed = isQuestCompleted ? rotSpeed * 3 : rotSpeed;
                     
                     if (isQuestCompleted) {
@@ -597,11 +594,14 @@
             }
         }
 
+        // ดักจับการกดแป้นพิมพ์เพื่อเดินเควสการพิมพ์
         window.addEventListener('keydown', (e) => {
             if (['F12', 'Control', 'Alt', 'Shift'].includes(e.key)) return;
             if (autoInterval) return; 
             if (modal.classList.contains('active')) return;
+            
             revealSteps(3);
+            handleQuestTyping(); // นับจำนวนการพิมพ์ทุกครั้งที่กดคีย์บอร์ด
         });
 
         window.addEventListener('click', (e) => {
