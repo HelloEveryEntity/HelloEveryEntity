@@ -37,7 +37,7 @@
             }
         }
 
-        /* --- สไตล์สำหรับรูปภาพที่ร่วงหล่น (ควบคุมตำแหน่งผ่าน JS) --- */
+        /* --- สไตล์รูปภาพที่ร่วงหล่น --- */
         .falling-img {
             position: absolute;
             top: -120px;
@@ -48,6 +48,13 @@
             pointer-events: none;
             z-index: 0;
             will-change: transform, opacity;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        /* เมื่อเควสสำเร็จ ขอบรูปจะเปลี่ยนเป็นสีเขียว */
+        .falling-img.quest-boost {
+            border-color: #34d399;
+            box-shadow: 0 4px 20px rgba(52, 211, 153, 0.6);
         }
 
         .bg-orb {
@@ -80,6 +87,35 @@
             letter-spacing: 2px;
             text-transform: uppercase;
             z-index: 1;
+        }
+
+        /* --- กล่องแสดงเควส (Quest Tracker) --- */
+        #quest-tracker {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid #334155;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: #94a3b8;
+            z-index: 100;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+
+        #quest-tracker span {
+            color: #38bdf8;
+            font-weight: bold;
+        }
+
+        #quest-tracker.completed {
+            border-color: #34d399;
+            color: #34d399;
+            box-shadow: 0 0 15px rgba(52, 211, 153, 0.3);
         }
 
         /* ปุ่ม RevealAll */
@@ -318,6 +354,9 @@
 </head>
 <body>
 
+    <!-- ตัวนับเควสที่มุมขวาบน -->
+    <div id="quest-tracker">🎯 เควสลับ: <span id="quest-count">0</span> / 15</div>
+
     <div id="orb-container"></div>
     <div id="rain-container"></div>
 
@@ -351,12 +390,34 @@
     </div>
 
     <script>
-        // --- ระบบฝนรูปภาพด้วย JavaScript (สุ่มขนาด + เลือนหายตามเวลาและหลุดจอ) ---
+        // --- ตัวแปรสำหรับระบบเควส ---
+        let clickCount = 0;
+        let isQuestCompleted = false;
+        const targetClicks = 15;
+        const questTracker = document.getElementById('quest-tracker');
+        const questCountSpan = document.getElementById('quest-count');
+
+        // ตรวจจับการคลิกเพื่อทำเควส (นับเฉพาะการคลิกทั่วไปที่ไม่ใช่ปุ่มหรือรูปขยาย)
+        window.addEventListener('click', (e) => {
+            if (e.target.id === 'auto-btn' || e.target.id === 'myImg' || e.target.closest('.port-link-btn') || modal.classList.contains('active')) return;
+            
+            if (!isQuestCompleted) {
+                clickCount++;
+                questCountSpan.textContent = clickCount;
+
+                if (clickCount >= targetClicks) {
+                    isQuestCompleted = true;
+                    questTracker.classList.add('completed');
+                    questTracker.innerHTML = "✨ เควสสำเร็จ! รูปหมุนเร็วขึ้น X3!";
+                }
+            }
+        });
+
+        // --- ระบบฝนรูปภาพ ---
         window.addEventListener('DOMContentLoaded', () => {
             const orbContainer = document.getElementById('orb-container');
             const rainContainer = document.getElementById('rain-container');
 
-            // สุ่มก้อนแสงพื้นหลัง
             const orbCount = Math.floor(Math.random() * 4) + 3;
             const colors = ['#38bdf8', '#34d399', '#a78bfa', '#f472b6', '#38ef7d'];
             for (let i = 0; i < orbCount; i++) {
@@ -372,7 +433,6 @@
                 orbContainer.appendChild(orb);
             }
 
-            // 1. รายการรูปชั่วคราว 10 รูป (สามารถเปลี่ยนเป็นชื่อไฟล์ในเครื่องของคุณได้ทีหลัง)
             const rainImages = [
                 "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=300&q=80",
                 "https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=300&q=80",
@@ -386,7 +446,7 @@
                 "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=300&q=80"
             ];
 
-            const totalDrops = 22; // จำนวนรูปที่ร่วงพร้อมกัน (แน่นสะใจ)
+            const totalDrops = 22;
 
             for (let i = 0; i < totalDrops; i++) {
                 createFallingImage();
@@ -397,34 +457,37 @@
                 img.className = 'falling-img';
                 img.src = rainImages[Math.floor(Math.random() * rainImages.length)];
                 
-                // 2. กำหนดขนาดให้พอเหมาะ (ระหว่าง 65px ถึง 105px) และสุ่มขนาดต่อรูป
                 const width = Math.floor(Math.random() * 40) + 65;
                 img.style.width = `${width}px`;
 
-                // สุ่มตำแหน่งแนวนอน
                 let posX = Math.random() * 95;
                 img.style.left = `${posX}%`;
 
-                // กำหนดค่าเริ่มต้นสำหรับการเคลื่อนไหวผ่าน JS
-                let posY = -150; // เริ่มต้นเหนือจอ
-                let speed = Math.random() * 1.5 + 1.2; // ความเร็วในการร่วง
-                let rotation = Math.random() * 60 - 30; // มุมเอียงเริ่มต้น
-                let rotSpeed = Math.random() * 0.8 - 0.4; // ความเร็วในการหมุนตัว
+                let posY = -150;
+                let speed = Math.random() * 1.5 + 1.2;
+                let rotation = Math.random() * 60 - 30;
+                let rotSpeed = Math.random() * 0.8 - 0.4; // ความเร็วหมุนปกติ
                 let opacity = 0;
-                let maxOpacity = Math.random() * 0.4 + 0.4; // ความโปร่งใสสูงสุด (0.4 - 0.8)
+                let maxOpacity = Math.random() * 0.4 + 0.4;
 
                 rainContainer.appendChild(img);
 
                 function animateDrop() {
-                    posY += speed;
-                    rotation += rotSpeed;
+                    // ถ้าทำเควสสำเร็จแล้ว ให้ความเร็วในการหมุนเพิ่มขึ้น 3 เท่า
+                    let currentRotSpeed = isQuestCompleted ? rotSpeed * 3 : rotSpeed;
+                    
+                    if (isQuestCompleted) {
+                        img.classList.add('quest-boost');
+                    }
 
-                    // 4. ระบบเลือนหายตามเวลา (Fade In ตอนต้น และ Fade Out เมื่อใกล้ขอบล่างจอ)
+                    posY += speed;
+                    rotation += currentRotSpeed;
+
                     let screenHeight = window.innerHeight;
                     if (posY < 100) {
-                        opacity = Math.min(maxOpacity, opacity + 0.03); // ค่อยๆ ปรากฏตอนเริ่มตก
+                        opacity = Math.min(maxOpacity, opacity + 0.03);
                     } else if (posY > screenHeight - 200) {
-                        opacity = Math.max(0, opacity - 0.02); // ค่อยๆ เลือนหายเมื่อใกล้ถึงขอบล่าง
+                        opacity = Math.max(0, opacity - 0.02);
                     } else {
                         opacity = maxOpacity;
                     }
@@ -432,17 +495,15 @@
                     img.style.transform = `translateY(${posY}px) rotate(${rotation}deg)`;
                     img.style.opacity = opacity;
 
-                    // ถ้าร่วงพ้นขอบล่างจอไปแล้ว ให้รีเซ็ตตำแหน่งกลับไปด้านบนสุดใหม่ทันที (วนลูปไม่รู้จบ)
                     if (posY > screenHeight + 100) {
                         img.remove();
-                        createFallingImage(); // สร้างรูปใหม่มาแทนที่
+                        createFallingImage();
                         return;
                     }
 
                     requestAnimationFrame(animateDrop);
                 }
 
-                // ดีเลย์เวลาเริ่มต้นไม่ให้ร่วงลงมาพรวดเดียวพร้อมกันตอนรีเฟรช
                 setTimeout(() => {
                     requestAnimationFrame(animateDrop);
                 }, Math.random() * 6000);
